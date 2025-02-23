@@ -8,9 +8,6 @@ import time
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
 
 def install_system_dependencies():
     try:
@@ -21,7 +18,11 @@ def install_system_dependencies():
         sys.exit(1)
 
 install_system_dependencies()
+
 import cv2
+import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
 
 # ------------------ Constants ------------------
 FPS_GRAVITY = 9.81
