@@ -95,7 +95,10 @@ def convert_mov_to_mp4_cv2(input_path, output_path):
         if not ret:
             break
         rotated_frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-        out.write(rotated_frame)
+        if orig_width > orig_height:
+            out.write(rotated_frame)
+        else:
+            out.write(frame)
     cap.release()
     out.release()
     return output_path
@@ -837,11 +840,13 @@ if uploaded_file is not None:
         # saved_video_path = export_video(processed_frames, output_video_path, fps)
         # processed_video_bytes = export_video(processed_frames, fps)
         temp_video_path = os.path.join(tempfile.gettempdir(), "processed_video.mp4")
-        exported_path = export_video(processed_frames, temp_video_path, fps)
-        exported_path = export_variable_speed_video(processed_frames, temp_video_path, output_fps=120,
+        if fps > 60:
+            exported_path = export_variable_speed_video(processed_frames, temp_video_path, output_fps=120,
                                                     takeoff_frame=jump_metrics['takeoff_frame'],
                                                     landing_frame=jump_metrics['landing_frame'],
                                                     lowest_hip_frame=jump_metrics['lowest_hip_frame'])
+        else:
+            exported_path = export_video(processed_frames, temp_video_path, fps)
         converted_video_path = os.path.join(tempfile.gettempdir(), "processed_video_converted.mp4")
         final_video_path = convert_video_to_h264(exported_path, converted_video_path)
         
