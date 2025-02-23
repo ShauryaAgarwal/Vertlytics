@@ -2,7 +2,7 @@
 import streamlit as st
 import tempfile
 import subprocess
-import cv2
+import sys
 import os
 import time
 import math
@@ -11,6 +11,17 @@ import numpy as np
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+
+def install_system_dependencies():
+    try:
+        subprocess.check_call(["apt-get", "update"])
+        subprocess.check_call(["apt-get", "install", "-y", "libsm6", "libxext6", "libgl1-mesa-glx", "ffmpeg"])
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred while installing system dependencies: {e}")
+        sys.exit(1)
+
+install_system_dependencies()
+import cv2
 
 # ------------------ Constants ------------------
 FPS_GRAVITY = 9.81
