@@ -2,13 +2,12 @@
 import streamlit as st
 import tempfile
 import subprocess
-import sys
+import cv2
 import os
 import time
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
