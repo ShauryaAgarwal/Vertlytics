@@ -603,9 +603,9 @@ def generate_recommendations(composite_score, risk_category, component_scores, m
     individual component scores, and raw measured metrics.
     """
     recommendations = []
-    recommendations.append("=== Overall Analysis ===")
-    recommendations.append(f"Composite Risk Score: {composite_score:.2f}")
-    recommendations.append(f"Overall Risk Category: {risk_category}")
+    recommendations.append("=== Overall Analysis ===\n")
+    recommendations.append(f"Composite Risk Score: {composite_score:.2f}\n")
+    recommendations.append(f"Overall Risk Category: {risk_category}\n")
     recommendations.append("")
     
     # Knee Alignment
@@ -613,67 +613,67 @@ def generate_recommendations(composite_score, risk_category, component_scores, m
         recommendations.append("Knee Alignment: Your knee alignment deviates significantly from neutral. "
                                "Excessive dynamic knee valgus/varus is strongly linked to ACL injury risk. "
                                "It is recommended that you engage in neuromuscular training (e.g., plyometrics, "
-                               "landing mechanics drills, and dynamic balance exercises) to improve alignment.")
+                               "landing mechanics drills, and dynamic balance exercises) to improve alignment.\n")
     else:
-        recommendations.append("Knee Alignment: Your knee alignment is within an acceptable range.")
+        recommendations.append("Knee Alignment: Your knee alignment is within an acceptable range.\n")
     
     # Knee Flexion
     if component_scores["knee_flexion_score"] > 1.0:
         recommendations.append("Knee Flexion: Your landing knee flexion is lower than the optimal value. "
                                "A stiffer landing increases impact forces on the knee. Consider incorporating "
-                               "eccentric strength training and landing technique coaching to enhance shock absorption.")
+                               "eccentric strength training and landing technique coaching to enhance shock absorption.\n")
     else:
-        recommendations.append("Knee Flexion: Your landing technique shows adequate knee flexion.")
+        recommendations.append("Knee Flexion: Your landing technique shows adequate knee flexion.\n")
     
     # Hip Drop
     if component_scores["hip_drop_score"] > 1.0:
         recommendations.append("Hip Drop: Excessive hip drop indicates poor core and gluteal control. "
                                "Strengthening exercises focusing on the glutes, hip abductors, and core stability, "
-                               "such as lateral band walks, single-leg squats, and planks, may help reduce this risk.")
+                               "such as lateral band walks, single-leg squats, and planks, may help reduce this risk.\n")
     else:
-        recommendations.append("Hip Drop: Your hip drop is within a normal range.")
+        recommendations.append("Hip Drop: Your hip drop is within a normal range.\n")
     
     # Jump Performance
     if component_scores["jump_score"] > 1.0:
         recommendations.append("Jump Performance: Your estimated jump height is below normative values, "
                                "which may reflect deficits in lower-body power. Plyometric exercises and "
-                               "explosive strength training (e.g., box jumps, squat jumps) could improve performance.")
+                               "explosive strength training (e.g., box jumps, squat jumps) could improve performance.\n")
     else:
-        recommendations.append("Jump Performance: Your jump height is comparable to normative data.")
+        recommendations.append("Jump Performance: Your jump height is comparable to normative data.\n")
     
     # Asymmetry
     if component_scores["asymmetry_score"] > 1.0:
         recommendations.append("Asymmetry: There is a noticeable imbalance between your left and right limb mechanics. "
-                               "Unilateral strength and stability exercises can help address this imbalance and reduce injury risk.")
+                               "Unilateral strength and stability exercises can help address this imbalance and reduce injury risk.\n")
     else:
-        recommendations.append("Asymmetry: Your bilateral movement symmetry is good.")
+        recommendations.append("Asymmetry: Your bilateral movement symmetry is good.\n")
     
     # Ground Contact Time
     if component_scores["ground_contact_score"] > 1.0:
         recommendations.append("Ground Contact Time: Prolonged ground contact time may indicate inefficient landing mechanics. "
-                               "Consider drills that emphasize quick, explosive reactivity to improve shock absorption and reduce injury risk.")
+                               "Consider drills that emphasize quick, explosive reactivity to improve shock absorption and reduce injury risk.\n")
     else:
-        recommendations.append("Ground Contact Time: Your ground contact time is within an optimal range.")
+        recommendations.append("Ground Contact Time: Your ground contact time is within an optimal range.\n")
     
     # Knee Alignment Variability
     if component_scores["variability_score"] > 1.0:
         recommendations.append("Knee Alignment Variability: High variability in knee alignment suggests inconsistent neuromuscular control. "
-                               "Balance and stabilization exercises can help promote more consistent movement patterns during landing.")
+                               "Balance and stabilization exercises can help promote more consistent movement patterns during landing.\n")
     else:
-        recommendations.append("Knee Alignment Variability: Your knee alignment remains consistently controlled during landing.")
+        recommendations.append("Knee Alignment Variability: Your knee alignment remains consistently controlled during landing.\n")
     
     recommendations.append("")
-    recommendations.append("=== Summary and Next Steps ===")
+    recommendations.append("=== Summary and Next Steps ===\n")
     if risk_category in ["High Risk", "Very High Risk"]:
         recommendations.append("Your overall risk profile is concerning. It is highly recommended that you consult "
                                "with a sports physiotherapist or strength and conditioning specialist to design "
-                               "a targeted intervention program focusing on neuromuscular control, strength, and proper landing technique.")
+                               "a targeted intervention program focusing on neuromuscular control, strength, and proper landing technique.\n")
     elif risk_category == "Moderate Risk":
         recommendations.append("Your metrics indicate a moderate risk. With targeted training focusing on the specific areas identified above, "
-                               "you can likely reduce your injury risk. Consider integrating corrective exercises and monitoring progress over time.")
+                               "you can likely reduce your injury risk. Consider integrating corrective exercises and monitoring progress over time.\n")
     else:
         recommendations.append("Your performance metrics are within optimal or good ranges. Continue with your current training, "
-                               "but consider incorporating advanced drills to further enhance performance and maintain injury resilience.")
+                               "but consider incorporating advanced drills to further enhance performance and maintain injury resilience.\n")
     
     # Optional: Provide numeric summaries of each component.
     recommendations.append("")
@@ -704,6 +704,69 @@ def export_video(frames, temp_output_path, fps):
         out.write(frame)
     out.release()
     return temp_output_path
+
+def export_variable_speed_video(processed_frames, output_path, output_fps=120,
+                                takeoff_frame=None, landing_frame=None, lowest_hip_frame=None):
+    """
+    Exports a video with variable playback speeds by duplicating frames in certain segments.
+    
+    Segmentation:
+      - Pre-takeoff (frame 0 to takeoff_frame-1): 120 fps (normal)
+      - Takeoff-to-landing (takeoff_frame to landing_frame-1): Each frame is repeated 2 times
+          so that playback appears at 60 fps (0.5x speed).
+      - Landing-to-lowest-hip (landing_frame to lowest_hip_frame-1): Each frame is repeated 4 times
+          so that playback appears at 30 fps (0.25x speed).
+      - Post-lowest-hip (lowest_hip_frame onward): 120 fps (normal).
+    
+    The final output video is written at output_fps (default 120 fps).
+    """
+    if not processed_frames:
+        st.error("No frames to export.")
+        return
+    
+    total_frames = len(processed_frames)
+    new_frames = []
+    
+    # Segment 1: Pre-takeoff (normal speed).
+    pre_takeoff_end = takeoff_frame if takeoff_frame is not None else 0
+    for i in range(0, pre_takeoff_end):
+        new_frames.append(processed_frames[i])
+    
+    # Segment 2: Takeoff-to-landing (0.5x speed: each frame repeated 2 times).
+    if takeoff_frame is not None and landing_frame is not None:
+        for i in range(takeoff_frame, landing_frame):
+            # Append 2 copies of each frame.
+            new_frames.extend([processed_frames[i]] * 2)
+    else:
+        st.write("Warning: takeoff or landing frame not defined; skipping slow-motion segment 2.")
+    
+    # Segment 3: Landing-to-lowest-hip (0.25x speed: each frame repeated 4 times).
+    if landing_frame is not None and lowest_hip_frame is not None:
+        for i in range(landing_frame, lowest_hip_frame):
+            new_frames.extend([processed_frames[i]] * 4)
+    else:
+        st.write("Warning: landing or lowest hip frame not defined; skipping slow-motion segment 3.")
+    
+    # Segment 4: Post-lowest-hip (normal speed).
+    if lowest_hip_frame is not None:
+        for i in range(lowest_hip_frame, total_frames):
+            new_frames.append(processed_frames[i])
+    else:
+        # If lowest_hip_frame is undefined, add the rest normally.
+        for i in range(landing_frame if landing_frame is not None else 0, total_frames):
+            new_frames.append(processed_frames[i])
+    
+    # Use the dimensions from the first frame.
+    height, width = new_frames[0].shape[:2]
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(output_path, fourcc, output_fps, (width, height))
+    
+    st.write(f"Exporting {len(new_frames)} frames to {output_path} at {output_fps} fps...")
+    for frame in new_frames:
+        out.write(frame)
+    out.release()
+    st.write(f"Export completed: {output_path}")
+    return output_path
 
 # ------------------ Streamlit UI Code ------------------
 
@@ -737,7 +800,10 @@ if uploaded_file is not None:
         st.success("Video conversion successful!")
         with open(converted_path, "rb") as video_file:
             video_bytes = video_file.read()
-        st.video(video_bytes)
+        col_left, col_mid, col_right = st.columns([1, 1, 1])
+        with col_mid:
+            st.header("Your Uploaded Video")
+            st.video(video_bytes)
     else:
         st.error("Video conversion failed.")
     # st.video(video_path)
@@ -772,11 +838,15 @@ if uploaded_file is not None:
         # processed_video_bytes = export_video(processed_frames, fps)
         temp_video_path = os.path.join(tempfile.gettempdir(), "processed_video.mp4")
         exported_path = export_video(processed_frames, temp_video_path, fps)
+        exported_path = export_variable_speed_video(processed_frames, temp_video_path, output_fps=120,
+                                                    takeoff_frame=jump_metrics['takeoff_frame'],
+                                                    landing_frame=jump_metrics['landing_frame'],
+                                                    lowest_hip_frame=jump_metrics['lowest_hip_frame'])
         converted_video_path = os.path.join(tempfile.gettempdir(), "processed_video_converted.mp4")
         final_video_path = convert_video_to_h264(exported_path, converted_video_path)
         
         # Layout: left column for interactive plots and textual feedback; right column for video.
-        col_left, col_right = st.columns([1, 1.5])
+        col_left, col_right = st.columns([1.33, 1])
         
         with col_left:
             st.header("Interactive Plots")
