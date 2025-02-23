@@ -775,7 +775,7 @@ def export_variable_speed_video(processed_frames, output_path, output_fps=120,
 
 # Configure the page (the dark theme is configured in .streamlit/config.toml)
 st.set_page_config(page_title="Jump Analysis & Injury Risk Tool", layout="wide")
-st.title("Jump Analysis & Injury Risk Tool")
+st.title("Vertlytics | An AI Jumping Coach & Injury Risk Analyzer")
 st.markdown("## Upload Your Video")
 
 uploaded_file = st.file_uploader("Choose a video file (mp4, mov)", type=["mp4", "mov"])
@@ -808,7 +808,7 @@ if uploaded_file is not None:
             st.header("Your Uploaded Video")
             st.video(video_bytes)
     else:
-        st.error("Video conversion failed.")
+        st.write("Please Wait for Your Results...")
     # st.video(video_path)
 
     # Create pose landmarker (dummy instance).
