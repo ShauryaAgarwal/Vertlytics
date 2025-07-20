@@ -2,6 +2,8 @@
 
 Vertlytics is an AI-powered tool that transforms a single video of your vertical jump into a comprehensive biomechanical analysis. Designed to empower both professional athletes and the general public, Vertlytics provides personalized insights and actionable recommendations to prevent injuries and optimize performance—all from just one video.
 
+Access our official [Devpost submission page](https://devpost.com/software/hello-jmohbp), including a comprehensive **Demo video** along with an in-depth project breakdown and documentation.
+
 ---
 
 ## Table of Contents
